@@ -13,6 +13,7 @@ use Text::CSV;
 use Carp;
 use File::Basename qw{ dirname };
 use IO::Compress::Gzip qw{ gzip $GzipError };
+use Number::Format qw{ format_number };
 
 STDOUT->autoflush( 1 );
 
@@ -76,15 +77,16 @@ foreach my $folder ( @xlist_folder{ 'AllMail', 'Sent' } )
 	my $folder_ids = $imap->search( 'ALL' )
 		or croak '$imap->search(\'ALL\'): ', $imap->LastError();
 
-	print 'Messages in folder: ', scalar @{ $folder_ids }, "\n";;
+	print 'Messages in folder: ', format_number( scalar @{ $folder_ids }), "\n";;
 
 	while ( @{ $folder_ids } )
 	{
 		my @batch_ids = splice @{ $folder_ids }, 0, 2000;
 
 		printf(
-			"Retrieving %d headers (%d remain)\n",
-			scalar @batch_ids, scalar @{ $folder_ids },
+			"Retrieving %s headers (%s remain)\n",
+			format_number( scalar @batch_ids ),
+			format_number( scalar @{ $folder_ids } ),
 		);
 
 		my $TYUI = $imap->fetch_hash(
@@ -128,7 +130,7 @@ foreach my $folder ( @xlist_folder{ 'AllMail', 'Sent' } )
 	print "Completed $folder\n";
 }
 
-print 'Total messages: ', scalar keys %Message, "\n";
+print 'Total messages: ', format_number( scalar keys %Message ), "\n";
 
 # 3. download messages to disk
 
@@ -146,7 +148,7 @@ foreach my $msg ( values %Message )
 	}
 }
 
-print 'Messages to download: ', scalar( map { @{ $_ } } values %Download), "\n";
+print 'Messages to download: ', format_number( scalar( map { @{ $_ } } values %Download) ), "\n";
 
 my $downloaded_count = 0;
 
@@ -155,7 +157,7 @@ my $stored_size = 0;
 
 while ( my ( $folder, $messages ) = each %Download )
 {
-	print 'Downloading from ', $folder, ' messages: ', scalar( @{$messages} ), "\n";
+	print 'Downloading from ', $folder, ' messages: ', format_number( scalar @{$messages} ), "\n";
 
 	my $folder_count = 0;
 
@@ -164,7 +166,6 @@ while ( my ( $folder, $messages ) = each %Download )
 
 	while ( my $msg = shift @{$messages} )
 	{
-		print "Downloading: $msg->{'X-GM-MSGID'}\n";
 
 		my $message_string = $imap->message_string( $msg->{ 'imap_id' } )
 			or croak $imap->LastError();
@@ -192,8 +193,9 @@ while ( my ( $folder, $messages ) = each %Download )
 		if ( $folder_count % 100 == 0 )
 		{
 			printf(
-				"%d messages (%d bytes) downloaded, %d bytes stored, %d remain\n",
-				$folder_count, $downloaded_size, $stored_size, scalar @{ $messages },
+				"%s messages, %s bytes downloaded, %s bytes stored, %s remain\n",
+				format_number($folder_count), format_number($downloaded_size),
+				format_number($stored_size), format_number(scalar @{ $messages }),
 			);
 		}
 	}
