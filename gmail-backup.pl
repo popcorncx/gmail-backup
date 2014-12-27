@@ -236,9 +236,11 @@ foreach my $msg ( values %Message )
 	}
 }
 
-foreach my $file ( sort keys %File )
+if ( my @files = sort keys %File )
 {
-	# TODO...
-	print "$file\n";
+	printf( "Files to delete: %d\n", scalar @files );
+
+	my $deleted = unlink @files;
+	printf( "Files deleted: %d\n", $deleted );
 }
 
