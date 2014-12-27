@@ -136,7 +136,7 @@ print 'Total messages: ', format_number( scalar keys %Message ), "\n";
 
 my %Download = ();
 
-foreach my $msg ( values %Message )
+foreach my $msg ( sort { $a->{'X-GM-MSGID'} <=> $b->{'X-GM-MSGID'} } values %Message )
 {
 	my $subdir = substr $msg->{'X-GM-MSGID'}, -2;
 
