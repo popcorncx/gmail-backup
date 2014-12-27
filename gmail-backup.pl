@@ -166,9 +166,13 @@ while ( my ( $folder, $messages ) = each %Download )
 
 	while ( my $msg = shift @{$messages} )
 	{
+		my $message_string = $imap->message_string( $msg->{ 'imap_id' } );
 
-		my $message_string = $imap->message_string( $msg->{ 'imap_id' } )
-			or croak $imap->LastError();
+		if ( not $message_string )
+		{
+			print Dumper $msg;
+			croak 'No message content, ', $imap->LastError(), "\n";
+		}
 
 		my $subdir = dirname( $msg->{ 'filename' } );
 
